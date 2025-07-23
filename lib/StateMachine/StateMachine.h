@@ -3,26 +3,68 @@
 
 #include <Arduino.h>
 
-struct StateMachine
+namespace StateMachine
 {
   
-  uint16_t clockwise = 0;
-  uint16_t anticlockwise = 0;
+  int8_t clockwise = 0;
+  int8_t anticlockwise = 0;
   
+  /**
+   * @brief DO NOT TOUCH OUTSIDE OF UNIT TESTS!
+   * 
+   */
+  uint8_t previousState = 0b11; // bit 0 = CLK (a), bit 1 = DT (b)
+
+  /**
+   * @brief update the state machine with a new state. doesn't increment if the change is invalid (180* change), there is no change, or the count value is maxed out
+   * 
+   * @param newState bit 0 = CLK (a), bit 1 = DT (b)
+   */
   void update(uint8_t newState){
-    switch (previousState)
+    const uint8_t switchState = (previousState << 2) | newState;
+    previousState = newState;
+    
+    switch (switchState)
     {
-    case 0b00:
-      update_00(newState);
+    case 0b0001:
+      if(clockwise < INT8_MAX){
+        clockwise++;
+      }
       return;
-    case 0b01:
-      update_01(newState);
+    case 0b0010:
+      if(anticlockwise < INT8_MAX){
+        anticlockwise++;
+      }
       return;
-    case 0b10:
-      update_10(newState);
+    case 0b0111:
+      if(clockwise < INT8_MAX){
+        clockwise++;
+      }
       return;
-    case 0b11:
-      update_11(newState);
+    case 0b0100:
+      if(anticlockwise < INT8_MAX){
+        anticlockwise++;
+      }
+      return;
+    case 0b1000:
+      if(clockwise < INT8_MAX){
+        clockwise++;
+      }
+      return;
+    case 0b1011:
+      if(anticlockwise < INT8_MAX){
+        anticlockwise++;
+      }
+      return;
+    case 0b1110:
+      if(clockwise < INT8_MAX){
+        clockwise++;
+      }
+      return;
+    case 0b1101:
+      if(anticlockwise < INT8_MAX){
+        anticlockwise++;
+      }
       return;
     
     default:
@@ -41,62 +83,17 @@ struct StateMachine
       vals = 1;
       clockwise--;
     }
+    else{
+      clockwise = 0;
+    }
     if(anticlockwise > 0){
       vals |= 0b10;
       anticlockwise--;
     }
+    else{
+      anticlockwise = 0;
+    }
     return vals;
-  }
-private:
-
-  uint8_t previousState = 0b11; // bit 0 = CLK (a), bit 1 = DT (b)
-
-  void update_11(uint8_t newState){
-    previousState = newState;
-    if(0b10 == newState && clockwise < UINT16_MAX){
-      clockwise++;
-      return;
-    }
-    if(0b01 == newState && anticlockwise < UINT16_MAX){
-      anticlockwise++;
-      return;;
-    }
-  }
-
-  void update_10(uint8_t newState){
-    previousState = newState;
-    if(0b00 == newState && clockwise < UINT16_MAX){
-      clockwise++;
-      return;
-    }
-    if(0b11 == newState && anticlockwise < UINT16_MAX){
-      anticlockwise++;
-      return;
-    }
-  }
-
-  void update_00(uint8_t newState){
-    previousState = newState;
-    if(0b01 == newState && clockwise < UINT16_MAX){
-      clockwise++;
-      return;
-    }
-    if(0b10 == newState && anticlockwise < UINT16_MAX){
-      anticlockwise++;
-      return;
-    }
-  }
-
-  void update_01(uint8_t newState){
-    previousState = newState;
-    if(0b11 == newState && clockwise < UINT16_MAX){
-      clockwise++;
-      return;
-    }
-    if(0b00 == newState && anticlockwise < UINT16_MAX){
-      anticlockwise++;
-      return;
-    }
   }
 };
 #endif

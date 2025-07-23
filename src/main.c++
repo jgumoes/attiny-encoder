@@ -5,19 +5,9 @@
 #define mask (uint8_t) 3
 
 void setup() {
-  // setup timer0
   /*
-  TODO:
-  set system clock to 8MHz
-  don't use a prescaler
-  set mode to CTC
-  set count limit to 16 (OCR0A)
-
-  read OCnx flag, or use interrupt to trigger pin change
-  
-  to reset: TCNT0 = 0;
-
-  alt: use normal mode and compare values in code, i.e. if timer >= halfPeriod || timerFlag
+  setup timer0 to use normal mode and compare values in code,
+  i.e. if timer >= halfPeriod || timerFlag
   */
  TCCR0A = 0;  // set mode to normal
  TCCR0B = 1;  // no prescale
@@ -29,7 +19,7 @@ void setup() {
   CLK in = PB0
   DT in = PB1
   */
-  StateMachine sm;
+  using namespace StateMachine;
 
   const uint8_t clockwiseOut = PB3;
   const uint8_t anticlockwiseOut = PB4;
@@ -39,11 +29,11 @@ void setup() {
   uint8_t ports;
   while(1){
     ports = PINB & mask;
-    sm.update(ports);
+    update(ports);
 
     if((TCNT0 >= count) || ((TIMSK & 0b10) > 0)){
       if(false == signalState){
-        PINB |= (sm.take() << PB3);
+        PINB |= (take() << PB3);
       }
       else{
         PINB &= 3;  // write pins low
@@ -56,5 +46,5 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // TODO: reset if the code reaches here
 }
